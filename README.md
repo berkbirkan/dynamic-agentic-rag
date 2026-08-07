@@ -34,6 +34,38 @@ sonuçlarını veya minimum gereksinimlerini bonus kodla karıştırmaz.
 - Kaynaklar, skorlar ve agent akış izi
 - Kullanıcı OpenRouter anahtarıyla free router veya erişebildiği ücretli model
 - API anahtarlarının diske/veritabanına yazılmaması
+- Uygulamayı dosya yüklemeden deneyebilmek için yerleşik, kaynaklı örnek belge
+
+## Hazır örnek ve manuel doğrulama
+
+Uygulamadaki **Hazır örneği kullan** düğmesi
+[`assets/rag_test_berk_birkan.txt`](assets/rag_test_berk_birkan.txt) belgesini
+düzenlenebilir düz metin alanına yükler. Kullanıcı içeriği inceleyebilir,
+değiştirebilir ve ardından **Bilgi tabanı oluştur** düğmesiyle geleneksel veya
+agentic RAG akışını deneyebilir. Soru alanının altındaki hazır pozitif ve negatif
+sorular da tek tıklamayla alana aktarılabilir. Örnek yalnızca Berk Birkan'ın
+birbiriyle
+bağlantılı kamuya açık profesyonel profillerindeki kaynaklandırılmış bilgilerden
+oluşur; hassas kişisel veri içermez.
+
+Örnek belgeyle pozitif ve negatif sorular manuel olarak denendi:
+
+- Pozitif sorguda sistem, GitHub profilindeki meslek bilgisini doğru biçimde
+  getirdi ve kullandığı chunk'ları kaynak panelinde gösterdi.
+- Negatif sorguda sistem, belgede bulunmayan doğum tarihini uydurmadı ve bu
+  bilginin mevcut olmadığını belirtti.
+
+Bu iki kontrol, örnek kullanımın ekran görüntüsüyle doğrulanmasıdır; 30 soruluk
+otomatik bir benchmark sonucu olarak yorumlanmamalıdır. Her yeni kullanıcı veri
+kümesinde threshold ayrıca kalibre edilmelidir.
+
+### Pozitif sorgu — kaynaklı doğru cevap
+
+![Pozitif RAG testi: GitHub profilindeki meslek bilgisinin kaynaklı cevabı](assets/positive.png)
+
+### Negatif sorgu — bilgi uydurmama
+
+![Negatif RAG testi: belgede bulunmayan doğum tarihi için bilgi yok cevabı](assets/negative.png)
 
 ## Mimari
 

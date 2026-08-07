@@ -39,6 +39,7 @@ SESSION_TTL_SECONDS = 60 * 60
 MAX_SESSIONS = 100
 MAX_FILES = 10
 MAX_FILE_BYTES = 25 * 1024 * 1024
+EXAMPLE_DOCUMENT = Path(__file__).resolve().parent / "assets" / "rag_test_berk_birkan.txt"
 
 
 @spaces.GPU(duration=120)
@@ -107,6 +108,11 @@ def ingest_files(files, raw_text, session_id):
         raise gr.Error(f"Bilgi tabanı oluşturulamadı: {exc}") from None
 
 
+def load_example():
+    """Load the bundled public-profile document into the editable text area."""
+    return EXAMPLE_DOCUMENT.read_text(encoding="utf-8")
+
+
 def ingest_hf(repo, split, column, max_rows, hf_token, session_id):
     try:
         session_id, session = ensure(session_id)
@@ -147,7 +153,10 @@ with gr.Blocks(title="Kendi RAG Asistanını Oluştur") as demo:
     with gr.Tab("Dosya / metin"):
         files = gr.File(file_count="multiple", file_types=[".pdf", ".docx", ".csv", ".xlsx", ".md", ".txt"], label="Dosyalar")
         raw_text = gr.Textbox(lines=6, label="Veya düz metin yapıştır")
-        ingest_button = gr.Button("Bilgi tabanı oluştur", variant="primary")
+        with gr.Row():
+            example_button = gr.Button("Hazır örneği kullan")
+            ingest_button = gr.Button("Bilgi tabanı oluştur", variant="primary")
+        gr.Markdown("*Hazır örnek, kamuya açık ve kaynaklandırılmış Berk Birkan profesyonel profilini metin alanına yükler. İçeriği inceleyip düzenleyebilirsiniz.*")
     with gr.Tab("Hugging Face Dataset"):
         repo = gr.Textbox(label="Dataset repo ID", placeholder="kullanici/dataset")
         with gr.Row():
@@ -167,11 +176,20 @@ with gr.Blocks(title="Kendi RAG Asistanını Oluştur") as demo:
         free_only = gr.Checkbox(value=False, label="Yalnızca ücretsiz modeller")
         models_button = gr.Button("Model listesini getir")
     question = gr.Textbox(label="Sorunuz")
+    gr.Examples(
+        examples=[
+            ["Berk Birkan kamuya açık GitHub profilinde kendisini hangi meslekle tanımlıyor?"],
+            ["Berk Birkan'ın doğum tarihi nedir?"],
+        ],
+        inputs=[question],
+        label="Hazır belge için pozitif ve negatif örnek sorular",
+    )
     ask_button = gr.Button("Sor", variant="primary")
     answer = gr.Markdown(label="Cevap")
     with gr.Accordion("Kaynaklar ve agent izi", open=False):
         citations = gr.Textbox(label="Kaynaklar")
         trace = gr.Textbox(label="Akış izi")
+    example_button.click(load_example, outputs=[raw_text])
     ingest_button.click(ingest_files, [files, raw_text, session_state], [status, session_state])
     hf_button.click(ingest_hf, [repo, split, column, max_rows, hf_token, session_state], [status, session_state])
     models_button.click(load_models, [api_key, free_only], [model])
