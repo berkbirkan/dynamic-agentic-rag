@@ -9,6 +9,18 @@ import time
 import uuid
 from pathlib import Path
 
+try:
+    import spaces
+except ImportError:
+    class _LocalSpaces:
+        @staticmethod
+        def GPU(function=None, **_kwargs):
+            def decorator(func):
+                return func
+            return decorator(function) if function else decorator
+
+    spaces = _LocalSpaces()
+
 import gradio as gr
 import httpx
 
@@ -18,6 +30,8 @@ from dynamic_rag.knowledge.embedding import SentenceTransformerEncoder
 from dynamic_rag.llm.openrouter import OpenRouterClient
 from dynamic_rag.service import DynamicRagSession
 
+IS_HF_SPACE = bool(os.getenv("SPACE_ID"))
+GPU_ENCODER = SentenceTransformerEncoder(device="cuda") if IS_HF_SPACE else None
 ENCODER = None
 SESSIONS = {}
 SESSION_LOCK = threading.Lock()
@@ -27,10 +41,31 @@ MAX_FILES = 10
 MAX_FILE_BYTES = 25 * 1024 * 1024
 
 
+@spaces.GPU(duration=120)
+def gpu_encode_documents(texts):
+    return GPU_ENCODER.encode_documents(texts)
+
+
+@spaces.GPU(duration=30)
+def gpu_encode_queries(texts):
+    return GPU_ENCODER.encode_queries(texts)
+
+
+class ZeroGPUEncoder:
+    def token_count(self, text):
+        return GPU_ENCODER.token_count(text)
+
+    def encode_documents(self, texts):
+        return gpu_encode_documents(texts)
+
+    def encode_queries(self, texts):
+        return gpu_encode_queries(texts)
+
+
 def new_session():
     global ENCODER
     if ENCODER is None:
-        ENCODER = SentenceTransformerEncoder()
+        ENCODER = ZeroGPUEncoder() if IS_HF_SPACE else SentenceTransformerEncoder()
     session_id = uuid.uuid4().hex
     with SESSION_LOCK:
         now = time.monotonic()
@@ -143,4 +178,4 @@ with gr.Blocks(title="Kendi RAG Asistanını Oluştur") as demo:
     ask_button.click(chat, [question, mode, model, api_key, threshold, session_state], [answer, citations, trace])
 
 if __name__ == "__main__":
-    demo.queue().launch()
+    demo.queue().launch(ssr_mode=False)
