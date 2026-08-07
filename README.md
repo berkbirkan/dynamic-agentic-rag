@@ -9,7 +9,7 @@ python_version: "3.10"
 app_file: app.py
 fullWidth: true
 suggested_hardware: cpu-basic
-short_description: Dosya veya HF Dataset ile geleneksel ve agentic RAG asistanı oluşturun.
+short_description: Dosyalarınızla geleneksel ve agentic RAG kurun.
 preload_from_hub:
 - magibu/embeddingmagibu-200m
 ---
