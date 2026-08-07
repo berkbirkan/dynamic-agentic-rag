@@ -8,7 +8,6 @@ sdk_version: "5.49.1"
 python_version: "3.10"
 app_file: app.py
 fullWidth: true
-suggested_hardware: cpu-basic
 short_description: Dosyalarınızla geleneksel ve agentic RAG kurun.
 preload_from_hub:
 - magibu/embeddingmagibu-200m
@@ -99,22 +98,22 @@ dinamiktir; README'de zamanla eskiyecek sabit ücretli model listesi tutulmaz.
 
 ## Hugging Face Space deployment
 
-Bu Space için önerilen donanım `cpu-basic`'tir:
+Canlı demo ZeroGPU üzerinde çalışır:
 
-- EmbeddingMagibu CPU'da yerel çalışır.
+- EmbeddingMagibu modül başlangıcında CUDA emülasyon katmanına kaydedilir.
+- Doküman ve sorgu embedding fonksiyonları `@spaces.GPU` ile GPU talep eder.
 - Üretken LLM Space donanımında değil, kullanıcı anahtarıyla OpenRouter'da çalışır.
 - Model dosyaları `preload_from_hub` ile Space build aşamasında indirilir.
 - Kalıcı disk gerekmez; bilgi tabanları oturumluk bellektedir.
 
-Dolayısıyla ZeroGPU bu sürüm için teknik bir gereksinim değildir. ZeroGPU
-yalnızca embedding batch'lerini GPU'ya taşıyarak ingestion süresini azaltmak için
-opsiyonel bir optimizasyon olabilir. Bu durumda `spaces.GPU` ile ayrı GPU
-fonksiyonu, hesap kotası ve uygun hesap/grant gerekir. Basit ve gerçekten ücretsiz
-yayınlama hedefi nedeniyle varsayılan paket CPU Basic'te tutulmuştur.
+OpenRouter yalnızca cevap üretimini üstlenir; embedding aramasının aynı Magibu
+modeliyle kalması için ZeroGPU kullanılır. GPU yalnızca dekore edilmiş embedding
+çağrıları süresince tahsis edilir ve sonra serbest bırakılır. Ücretsiz hesaplarda
+günlük ZeroGPU kotası ve kuyruk bekleme süresi olabilir.
 
 Space oluştururken:
 
-1. SDK olarak Gradio ve donanım olarak CPU Basic seçilir.
+1. SDK olarak Gradio ve donanım olarak ZeroGPU seçilir.
 2. Bu reponun tamamı Space reposuna yüklenir.
 3. Ortak bir `OPENROUTER_API_KEY` tanımlamak zorunlu değildir; BYOK arayüzü vardır.
 4. Hassas anahtarlar repository variable değil Space Secret olarak tanımlanır.
@@ -122,9 +121,9 @@ Space oluştururken:
 
 Space metadata alanları Hugging Face'in
 [resmî yapılandırma referansına](https://huggingface.co/docs/hub/spaces-config-reference)
-göre README frontmatter'ında tutulur. CPU Basic'in varsayılan ücretsiz Space
-donanımı olduğu [Space yönetim rehberinde](https://huggingface.co/docs/huggingface_hub/main/guides/manage-spaces)
-belirtilir.
+göre README frontmatter'ında tutulur. ZeroGPU entegrasyonu
+[resmî ZeroGPU rehberindeki](https://huggingface.co/docs/hub/spaces-zerogpu)
+`@spaces.GPU` sözleşmesini izler.
 
 ## Güvenlik ve sınırlar
 
